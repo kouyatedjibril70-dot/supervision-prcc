@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Supervision PRCC — Analyse de faisabilité du modèle Guinée-Bissau au Sénégal</title>
+<meta name="description" content="Analyse géospatiale de la faisabilité du modèle de supervision PRCC entre Guinée-Bissau et Sénégal — 345 communautés géolocalisées">
+<meta name="theme-color" content="#8BC34A">
+
+<!-- Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<!-- Leaflet -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+
+<!-- Custom Styles -->
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body class="splash-lock">
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     SPLASH SCREEN
+     ═══════════════════════════════════════════════════════════════════════════ -->
+<div id="splash">
+  <div class="eyebrow">Tostan · SERA · Analyse géospatiale</div>
+  <h1>En 2026, les superviseurs du <em>Sénégal</em> peuvent-ils effectuer le suivi des communautés ayant achevé le PRCC au cours des années précédentes, à l'instar de leurs homologues en Guinée-Bissau&nbsp;?</h1>
+  <p>Analyse de 345 communautés géolocalisées : en supervisant leurs communautés PRCC en cours, les superviseurs passent-ils à proximité des communautés dont le PRCC est terminé&nbsp;?</p>
+  <button onclick="closeSplash()">Découvrir le verdict →</button>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     HEADER
+     ═══════════════════════════════════════════════════════════════════════════ -->
+<header>
+  <div class="logo">T</div>
+  <div>
+    <h2>Supervision PRCC — Analyse de faisabilité</h2>
+    <div class="sub">Faisabilité du modèle Guinée-Bissau · Sénégal 2026</div>
+  </div>
+  <nav>
+    <button class="active" data-tab="synthese">📊 Synthèse</button>
+    <button data-tab="carte">🗺️ Carte interactive</button>
+    <button data-tab="comparateur">⚖️ Comparateur GB / SN</button>
+    <button data-tab="verdict">✅ Verdict</button>
+  </nav>
+</header>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     MAIN CONTENT
+     ═══════════════════════════════════════════════════════════════════════════ -->
+<main>
+
+<!-- ═══════════════════════════════════════════════════════
+     TAB: SYNTHÈSE
+     ═══════════════════════════════════════════════════════ -->
+<section class="tab active" id="tab-synthese">
+
+  <h3 class="sec">La question en un coup d'œil</h3>
+
+  <div class="grid g4">
+    <div class="card kpi green">
+      <div class="val" id="kpiGB">—</div>
+      <div class="lbl">des communautés PRCC terminées de Guinée-Bissau sont à 15 km ou moins d'une communauté supervisée → le modèle « en passant » fonctionne</div>
+    </div>
+    <div class="card kpi red">
+      <div class="val" id="kpiSN">—</div>
+      <div class="lbl">des communautés PRCC terminées du Sénégal sont à 15 km ou moins d'une communauté supervisée → le modèle est inapplicable tel quel</div>
+    </div>
+    <div class="card kpi gold">
+      <div class="val" id="kpiMinSN">—</div>
+      <div class="lbl">distance minimale au Sénégal entre une communauté PRCC terminée et la communauté supervisée la plus proche (vs 0,2 km en Guinée-Bissau)</div>
+    </div>
+  </div>
+
+  <h3 class="sec">Pourquoi un tel écart ?</h3>
+
+  <div class="grid g2">
+    <div class="card">
+      <h4>Distances communautés PRCC terminées → communauté supervisée la plus proche</h4>
+      <canvas id="chartDist" height="280"></canvas>
+      <p class="note">En Guinée-Bissau, toutes les cohortes (2021→2026) sont empilées dans la même région (Bafata) : les superviseurs croisent naturellement les anciennes communautés. Au Sénégal, les 45 PRCC en cours (2024-2027) ont été implantés dans de <b>nouveaux territoires</b> (Dagana, Kolda-ville), loin des 140 communautés dont le PRCC est terminé.</p>
+    </div>
+    <div class="card">
+      <h4>Taux de couverture jusqu'à 15 km par région (Sénégal)</h4>
+      <canvas id="chartReg" height="280"></canvas>
+      <p class="note">Aucune région sénégalaise n'atteint le seuil de couverture. La communauté PRCC terminée la plus « proche » d'un superviseur (Médina Yoro Foulah → Kolda) est déjà à 36 km.</p>
+    </div>
+  </div>
+
+  <h3 class="sec">Répartition des communautés</h3>
+
+  <div class="card" style="overflow-x:auto">
+    <table id="tblSynth"></table>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     TAB: CARTE INTERACTIVE
+     ═══════════════════════════════════════════════════════ -->
+<section class="tab" id="tab-carte">
+
+  <h3 class="sec">Explorer le terrain</h3>
+
+  <div class="map-controls">
+    <select id="selPays">
+      <option value="Sénégal">🇸🇳 Sénégal</option>
+      <option value="Guinée-Bissau">🇬🇼 Guinée-Bissau</option>
+      <option value="tous">🌍 Les deux pays</option>
+    </select>
+    <select id="selRegion"><option value="toutes">📍 Toutes les régions</option></select>
+    <label class="chip">Rayon de couverture : <input type="range" id="rngRadius" min="5" max="50" value="15" step="5"> <b id="lblRadius">15 km</b></label>
+    <button id="btnResetSel" class="chip" type="button">✕ Réinitialiser la sélection</button>
+  </div>
+
+  <div class="map-wrap">
+    <div id="map"></div>
+    <div id="mapLegend"></div>
+  </div>
+
+  <div class="card insight">
+    <h4>🧠 Analyse automatique</h4>
+    <div id="mapAnalysis" class="note">Chargement…</div>
+  </div>
+
+  <p class="note">💡 <b>Cliquez sur une communauté PRCC en cours</b> (point bleu) pour dessiner son rayon d'action et recolorer les communautés PRCC terminées à proximité selon leur distance à <b>cette</b> référence (vert : 5 km ou moins, orange : jusqu'au rayon choisi, rouge : hors rayon). Utilisez « ✕ Réinitialiser la sélection » pour revenir à l'état initial.</p>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     TAB: COMPARATEUR
+     ═══════════════════════════════════════════════════════ -->
+<section class="tab" id="tab-comparateur">
+
+  <h3 class="sec">Deux géographies, deux réalités</h3>
+
+  <div class="grid g2">
+    <div class="card">
+      <h4>🇬🇼 Guinée-Bissau — le modèle fonctionne</h4>
+      <div id="mapGB"></div>
+      <div class="note" id="statsGB"></div>
+    </div>
+    <div class="card">
+      <h4>🇸🇳 Sénégal — les deux réseaux ne se croisent pas</h4>
+      <div id="mapSN"></div>
+      <div class="note" id="statsSN"></div>
+    </div>
+  </div>
+
+  <div class="card insight">
+    <h4>🧠 Analyse comparative</h4>
+    <div id="comparatorAnalysis" class="note">Chargement…</div>
+  </div>
+
+  <h3 class="sec">Comparaison chiffrée</h3>
+
+  <div class="card" style="overflow-x:auto">
+    <table id="tblComp"></table>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     TAB: VERDICT
+     ═══════════════════════════════════════════════════════ -->
+<section class="tab" id="tab-verdict">
+
+  <h3 class="sec">Verdict par région (Sénégal)</h3>
+
+  <div class="grid g2" id="verdictCards"></div>
+
+  <h3 class="sec">Pourquoi le modèle Guinée-Bissau ne se transpose pas tel quel</h3>
+
+  <div class="card">
+    <p class="note" style="font-size:0.88rem">
+      <b style="color:var(--slate)">1. Une condition géographique, pas organisationnelle.</b> Le modèle guinéen ne fonctionne pas parce que les superviseurs sont plus efficaces, mais parce que 100 % du programme tient dans une seule région (Bafata) : chaque nouvelle cohorte PRCC est implantée <i>au milieu</i> des anciennes. La supervision « en passant » est un sous-produit de cette densité.<br><br>
+      <b style="color:var(--slate)">2. Au Sénégal, les réseaux sont disjoints.</b> Les 45 communautés PRCC en cours sont concentrées à Dagana (Saint-Louis) et Kolda-ville, tandis que les 140 communautés PRCC terminées sont réparties dans 5 zones (Kédougou, Matam, Tambacounda, Sédhiou, Médina Yoro Foulah). Distance minimale : 36 km. Distance moyenne : 163 km. Aucun trajet de superviseur ne « passe par » une communauté PRCC terminée.<br><br>
+      <b style="color:var(--slate)">3. Mais les communautés PRCC terminées sénégalaises sont très regroupées entre elles.</b> 86 % sont à moins de 5 km d'une autre communauté PRCC terminée : elles forment des groupes de communautés voisines compacts hérités des anciennes cohortes. C'est un constat structurant.
+    </p>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     FOOTER
+     ═══════════════════════════════════════════════════════ -->
+<footer>
+  Supervision PRCC — Analyse de faisabilité · Département SERA · Analyse géospatiale — données 2020-2025 · Distances Haversine (vol d'oiseau)
+</footer>
+
+</main>
+
+<!-- ═══════════════════════════════════════════════════════
+     SCRIPTS
+     ═══════════════════════════════════════════════════════ -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+
+</body>
+</html>
